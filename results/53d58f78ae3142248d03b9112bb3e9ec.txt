@@ -1,0 +1,9 @@
+
+adamMgross
+---------------------------
+	1: file size: 37, correct? True, score: 0.0405405405405
+	3: file size: 37, correct? True, score: 0.0405405405405
+	2: file size: 37, correct? True, score: 0.0405405405405
+	4: file size: 37, correct? True, score: 0.0405405405405
+
+	Total score: 0.162162162162
