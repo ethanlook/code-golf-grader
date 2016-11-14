@@ -12,7 +12,7 @@ NUMBER_OF_WINNERS = 3
 
 
 def shell_exec(string_of_args):
-    return subprocess.call(string_of_args.split(' '))
+    return subprocess.call([s.strip() for s in string_of_args.split(' ')])
 
 class Contest():
 
@@ -38,7 +38,7 @@ class Contest():
                 dump += '\n\tTotal score: {}\n'.format(winner.get_total_score())
                 results_file.write(dump)
         return results_id
-        
+
 
 def grade(fsize, correctness):
     ''' This is the criterion for score
@@ -48,7 +48,7 @@ def grade(fsize, correctness):
 
 @total_ordering
 class Contestant():
-    
+
     def __init__(self, name):
         self.name = name
         self.scores = {}
@@ -70,7 +70,7 @@ class Contestant():
 
     def __gt__(self, other):
         return self.get_total_score() > other.get_total_score()
-    
+
 
 def extract_problem_number(filename):
     for char in filename:
@@ -96,11 +96,12 @@ def list_open_files(directory):
 
 def extract_username(repo_url):
     splitted = repo_url.split('/')
-    return splitted[splitted.find('github.com') + 1]
+    return splitted[splitted.index('github.com') + 1]
 
 def clone_github_repo(repo):
     shell_exec('git clone {} ./github_dirs/{}'
                .format(repo, extract_username(repo)))
+
 
 def file_size(fname):
     return os.path.getsize(fname)
@@ -142,28 +143,29 @@ def is_file_of_interest(fname):
     return fname[0] != '.' and fname.split('.')[-1] != 'git' and fname.split('.')[-1] != 'txt'
 
 def run():
-    
+    shell_exec('rm -rf github_dirs')
+    shell_exec('mkdir github_dirs')
+    build_submission_dir()
     contest = Contest(load_solutions())
-    print 'scoring...' 
+    print 'scoring...'
     for contestant in os.listdir('./github_dirs'):
         print 'evaluating contestant {}'.format(contestant)
         new_contestant_obj = Contestant(contestant)
         contest.add_contestant(new_contestant_obj)
         submission_dir = os.listdir('./github_dirs/{}'.format(contestant))
-        
         for submission in submission_dir:
             if not is_file_of_interest(submission):
                 continue
             print 'evlauating submission {}'.format(submission)
             problem_num = extract_problem_number(submission)
-            
+
             source = submission
             output = get_output_for_problem(problem_num, submission_dir)
 
             fsize = file_size('{}/{}/{}'.format('./github_dirs', contestant, source))
             correct = evaluate_correctness(contest.solutions, output)
             new_contestant_obj.add_result(problem_num, (fsize, correct, grade(fsize, correct)))
-    
+
     result_name = contest.dump_n_winners_results(NUMBER_OF_WINNERS)
     shell_exec('cat {}/{}.txt'.format(RESULTS_DIRNAME, result_name))
 
