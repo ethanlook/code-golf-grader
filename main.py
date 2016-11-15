@@ -168,37 +168,6 @@ def run():
 
     result_name = contest.dump_n_winners_results(NUMBER_OF_WINNERS)
     shell_exec('cat {}/{}.txt'.format(RESULTS_DIRNAME, result_name))
+    print 'result file: {}.txt'.format(result_name)
 
 run()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    # ingest github directories from text file
-    # for each github directory
-        # print "scoring person..."
-        # clone directory
-        # for each submitted-problem in directory
-            # print "scoring problem...", sleep(1)
-            # get size of file
-            # check for correctness
-            # add (problem_id, size_of_file, correctness) to records under person's github name
-            # print "score: {}'
-
-# print "finding top 3.."
-# find top 3
-# print "number 3:...", sleep(1), "name!"
-# print "number 2:...", sleep(1), "name!"
-# print "number 1:...", sleep(1), "name!"
-# return winners
-
