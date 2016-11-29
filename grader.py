@@ -2,9 +2,12 @@ from functools import total_ordering
 import os
 import subprocess
 import json
+import time
 from datetime import datetime
 from uuid import uuid4
 import random
+from asc import logo
+
 
 SUBMISSIONS_FILENAME = './submissions.txt'
 SOLUTIONS_DIRNAME = './solutions'
@@ -18,9 +21,8 @@ def shell_exec(string_of_args):
 
 class Contest():
 
-    def __init__(self, solutions={}):
+    def __init__(self,):
         self.contestants = []
-        self.solutions = solutions
 
     def add_contestant(self, contestant):
         self.contestants.append(contestant)
@@ -63,7 +65,7 @@ class Contestant():
         s = '\n---------{}--------\n'.format(self.name)
         for i, score in enumerate(self.scores):
             s += '\tproblem {}: {}\n'.format(i+1, score)
-        s += '\ttotal: {}'.format(self.get_total_score())
+        s += '\ttotal: {}\n'.format(self.get_total_score())
         return s
 
 def extract_problem_number(filename):
@@ -71,13 +73,6 @@ def extract_problem_number(filename):
         if char.isdigit():
             return char
     return False
-
-def load_solutions():
-    solns = [(extract_problem_number(solution), open('{}/{}'.format(SOLUTIONS_DIRNAME, solution), 'r')) for solution in os.listdir(SOLUTIONS_DIRNAME)]
-    soln_map = {}
-    for problem_number, soln_file in solns:
-        soln_map[problem_number] = soln_file
-    return soln_map
 
 def full_fp(github_dir):
     return '{}/github_dirs/{}/'.format(os.getcwd(), github_dir)
@@ -100,70 +95,57 @@ def clone_github_repo(repo):
 def file_size(fname):
     return os.path.getsize(fname)
 
-def evaluate_correctness(soln_map, submitted):
-    solution = soln_map[extract_problem_number(submitted)].readlines()
-    with open('{}/{}'.format(SOLUTIONS_DIRNAME, submitted), 'r') as submission:
-        submission_lines = submission.readlines()
-        for i, line in enumerate(submission_lines):
-            if line.lower().strip() != solution[i].lower().strip():
-                return False
-    return True
-
 def build_submission_dir():
+    print logo
     githubs_list = file_lines_to_list(SUBMISSIONS_FILENAME)
     for repo_url in githubs_list:
+        time.sleep(0.75)
         clone_github_repo(repo_url)
+        print '\n'
 
 def is_txt(fname):
     return fname.split('.')[-1] == 'txt'
 
-def get_source_for_problem(problem_number, submission_dir):
-    for fname in submission_dir:
-        num = extract_problem_number(fname)
-        if num == problem_number:
-            if not is_txt(fname):
-                return fname
-    return False
-
-def get_output_for_problem(problem_number, submission_dir):
-    for fname in submission_dir:
-        num = extract_problem_number(fname)
-        if num == problem_number:
-            if is_txt(fname):
-                return fname
-    return False
-
 def is_file_of_interest(fname):
     return fname[0] != '.' and fname.split('.')[-1] != 'git' and fname.split('.')[-1] != 'txt'
+
+
+def display(s):
+    shell_exec('clear')
+    print logo
+    print s
+
 
 def run():
     shell_exec('rm -rf github_dirs')
     shell_exec('mkdir github_dirs')
     build_submission_dir()
-    contest = Contest(load_solutions())
-    print 'scoring...'
+    contest = Contest()
+    display('\nScoring contest...\n')
+    time.sleep(0.05)
     for contestant in os.listdir('./github_dirs'):
-        print 'evaluating contestant {}'.format(contestant)
+        display('Evaluating contestant {}...'.format(contestant))
+        time.sleep(1)
         new_contestant_obj = Contestant(contestant)
         contest.add_contestant(new_contestant_obj)
         submission_dir = os.listdir('./github_dirs/{}'.format(contestant))
         for submission in submission_dir:
             if not is_file_of_interest(submission):
                 continue
-            print 'evlauating submission {}'.format(submission)
+            print 'Evaluating file: {}'.format(submission)
+            time.sleep(0.05)
             problem_num = extract_problem_number(submission)
 
             source = submission
-            #output = get_output_for_problem(problem_num, submission_dir)
 
             fsize = file_size('{}/{}/{}'.format('./github_dirs', contestant, source))
-            #correct = evaluate_correctness(contest.solutions, output)
             new_contestant_obj.add_result(problem_num, fsize)
 
 
     result_name = contest.dump_all_results()
+    dump = ''
     for winner in reversed(sorted(contest.contestants[:NUMBER_OF_WINNERS])):
-        print winner
-    print 'result file: {}.txt'.format(result_name)
-
+        dump += str(winner)
+    display(dump + '\n\nresult file: {}.txt\n\n'.format(result_name))
+shell_exec('clear')
 run()
