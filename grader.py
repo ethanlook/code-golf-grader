@@ -4,11 +4,13 @@ import subprocess
 import json
 from datetime import datetime
 from uuid import uuid4
+import random
 
 SUBMISSIONS_FILENAME = './submissions.txt'
 SOLUTIONS_DIRNAME = './solutions'
 RESULTS_DIRNAME = './results'
 NUMBER_OF_WINNERS = 3
+NUM_PROBLEMS = 6
 
 
 def shell_exec(string_of_args):
@@ -24,26 +26,16 @@ class Contest():
         self.contestants.append(contestant)
 
     def get_top_n_names(self, n):
-        return sorted(self.contestants[:n])
+        return reversed(sorted(self.contestants[:n]))
 
-    def dump_n_winners_results(self, n):
+    def dump_all_results(self):
         results_id = uuid4().hex
         shell_exec('touch {}/{}.txt'.format(RESULTS_DIRNAME, results_id))
         with open('{}/{}.txt'.format(RESULTS_DIRNAME, results_id), 'wr') as results_file:
-            for winner in self.get_top_n_names(n):
-                dump = '\n{}\n---------------------------\n'.format(winner.name)
-                for problem in winner.scores:
-                    result = winner.scores[problem]
-                    dump += '\t{}: file size: {}, correct? {}, score: {}\n'.format(problem, result[0], result[1], result[2])
-                dump += '\n\tTotal score: {}\n'.format(winner.get_total_score())
-                results_file.write(dump)
+            for i, contestant in enumerate(reversed(sorted(self.contestants))):
+                results_file.write('\n{}.\n{}'.format(i+1, contestant))
+            results_file.write('\n')
         return results_id
-
-
-def grade(fsize, correctness):
-    ''' This is the criterion for score
-    '''
-    return float((correctness + 0.5)) / fsize
 
 
 @total_ordering
@@ -51,26 +43,28 @@ class Contestant():
 
     def __init__(self, name):
         self.name = name
-        self.scores = {}
-        self.grading_criteria = grade
+        self.scores = []
+        for i in range(NUM_PROBLEMS):
+            self.scores.append(0)
 
     def add_result(self, problem, score):
-        self.scores[problem] = score
+        self.scores[int(problem) - 1] = score
 
     def get_total_score(self):
-        running_total = 0
-        for prob_num in self.scores:
-            fsize = self.scores[prob_num][0]
-            correctness = self.scores[prob_num][1]
-            running_total += self.grading_criteria(fsize, correctness)
-        return running_total
+        return sum(self.scores)
 
     def __eq__(self, other):
-        return self.name == other.name
+        return self.name == other.name and self.get_total_score() == other.get_total_sccore()
 
     def __gt__(self, other):
-        return self.get_total_score() > other.get_total_score()
+        return self.get_total_score() < other.get_total_score()
 
+    def __repr__(self):
+        s = '\n---------{}--------\n'.format(self.name)
+        for i, score in enumerate(self.scores):
+            s += '\tproblem {}: {}\n'.format(i+1, score)
+        s += '\ttotal: {}'.format(self.get_total_score())
+        return s
 
 def extract_problem_number(filename):
     for char in filename:
@@ -99,8 +93,8 @@ def extract_username(repo_url):
     return splitted[splitted.index('github.com') + 1]
 
 def clone_github_repo(repo):
-    shell_exec('git clone {} ./github_dirs/{}'
-               .format(repo, extract_username(repo)))
+    shell_exec('git clone {} ./github_dirs/{}-{}/'
+               .format(repo, extract_username(repo), random.randint(0, 10000)))
 
 
 def file_size(fname):
@@ -160,14 +154,16 @@ def run():
             problem_num = extract_problem_number(submission)
 
             source = submission
-            output = get_output_for_problem(problem_num, submission_dir)
+            #output = get_output_for_problem(problem_num, submission_dir)
 
             fsize = file_size('{}/{}/{}'.format('./github_dirs', contestant, source))
-            correct = evaluate_correctness(contest.solutions, output)
-            new_contestant_obj.add_result(problem_num, (fsize, correct, grade(fsize, correct)))
+            #correct = evaluate_correctness(contest.solutions, output)
+            new_contestant_obj.add_result(problem_num, fsize)
 
-    result_name = contest.dump_n_winners_results(NUMBER_OF_WINNERS)
-    shell_exec('cat {}/{}.txt'.format(RESULTS_DIRNAME, result_name))
+
+    result_name = contest.dump_all_results()
+    for winner in reversed(sorted(contest.contestants[:NUMBER_OF_WINNERS])):
+        print winner
     print 'result file: {}.txt'.format(result_name)
 
 run()
