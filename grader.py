@@ -7,7 +7,7 @@ from datetime import datetime
 from uuid import uuid4
 import random
 from asc import logo
-
+import re
 
 SUBMISSIONS_FILENAME = './submissions.txt'
 SOLUTIONS_DIRNAME = './solutions'

@@ -1,1 +1,5 @@
-https://github.com/adamMgross/mockSubmissions
+https://github.com/adamMgross/amg
+https://github.com/adamMgross/2amg
+https://github.com/adamMgross/3amg
+https://github.com/adamMgross/4amg
+https://github.com/adamMgross2/mock-code-golf
