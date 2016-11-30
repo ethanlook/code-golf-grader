@@ -93,7 +93,9 @@ def clone_github_repo(repo):
 
 
 def file_size(fname):
-    return os.path.getsize(fname)
+    with open(fname) as f:
+        contents = re.sub('\r', '', f.read())
+        return len(bytearray(contents))
 
 def build_submission_dir():
     print logo
