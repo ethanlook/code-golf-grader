@@ -47,7 +47,7 @@ class Contestant():
         self.name = name
         self.scores = []
         for i in range(NUM_PROBLEMS):
-            self.scores.append(5000)
+            self.scores.append(1500)
 
     def add_result(self, problem, score):
         self.scores[int(problem) - 1] = score
