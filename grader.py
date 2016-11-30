@@ -47,7 +47,7 @@ class Contestant():
         self.name = name
         self.scores = []
         for i in range(NUM_PROBLEMS):
-            self.scores.append(0)
+            self.scores.append(5000)
 
     def add_result(self, problem, score):
         self.scores[int(problem) - 1] = score
@@ -143,9 +143,9 @@ def run():
 
 
     result_name = contest.dump_all_results()
-    dump = ''
-    for winner in reversed(sorted(contest.contestants[:NUMBER_OF_WINNERS])):
-        dump += str(winner)
-    display(dump + '\n\nresult file: {}.txt\n\n'.format(result_name))
+    for i, contestant in enumerate(sorted(contest.contestants)[::-1]):
+        print '\n{}.\n{}'.format(i+1, contestant)
+    display('\n\nResult file: {}.txt\n\n'.format(result_name))
+    shell_exec('cat ./results/{}.txt'.format(result_name))
 shell_exec('clear')
 run()
