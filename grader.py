@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 from uuid import uuid4
 import random
-from asc import logo
 import re
 
 SUBMISSIONS_FILENAME = './submissions.txt'
@@ -14,6 +13,7 @@ SOLUTIONS_DIRNAME = './solutions'
 RESULTS_DIRNAME = './results'
 NUMBER_OF_WINNERS = 3
 NUM_PROBLEMS = 6
+DEFAULT_SCORES = [1500, 1500, 1500, 1500, 1500, 1500]
 
 
 def shell_exec(string_of_args):
@@ -45,9 +45,7 @@ class Contestant():
 
     def __init__(self, name):
         self.name = name
-        self.scores = []
-        for i in range(NUM_PROBLEMS):
-            self.scores.append(1500)
+        self.scores = DEFAULT_SCORES[:]
 
     def add_result(self, problem, score):
         self.scores[int(problem) - 1] = score
@@ -98,7 +96,6 @@ def file_size(fname):
         return len(bytearray(contents))
 
 def build_submission_dir():
-    print logo
     githubs_list = file_lines_to_list(SUBMISSIONS_FILENAME)
     for repo_url in githubs_list:
         time.sleep(0.75)
@@ -114,7 +111,6 @@ def is_file_of_interest(fname):
 
 def display(s):
     shell_exec('clear')
-    print logo
     print s
 
 
