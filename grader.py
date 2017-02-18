@@ -9,8 +9,10 @@ import random
 import re
 
 # Change config to similar file for other Code Golf Competitions
-from config import SUBMISSIONS_FILENAME, SOLUTIONS_DIRNAME, RESULTS_DIRNAME, NUMBER_OF_WINNERS, NUM_PROBLEMS, DEFAULT_SCORES, DEFAULT_CORRECTNESS, SOLUTIONS, SORT_ANSWERS
+from config import *
 
+# Logo art
+from logo import *
 
 def shell_exec(string_of_args):
     return subprocess.call([s.strip() for s in string_of_args.split(' ')])
@@ -120,6 +122,13 @@ def display(s):
 
 
 def run():
+    print VANDYAPPS
+    time.sleep(0.75)
+    print CODEGOLF
+    time.sleep(0.75)
+    print YEAR
+    time.sleep(2)
+
     shell_exec('rm -rf github_dirs')
     shell_exec('mkdir github_dirs')
     build_submission_dir()
