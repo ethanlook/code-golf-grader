@@ -9,7 +9,7 @@ import random
 import re
 
 # Change config to similar file for other Code Golf Competitions
-from config import SUBMISSIONS_FILENAME, SOLUTIONS_DIRNAME, RESULTS_DIRNAME, NUMBER_OF_WINNERS, NUM_PROBLEMS, DEFAULT_SCORES, DEFAULT_CORRECTNESS, SOLUTIONS
+from config import SUBMISSIONS_FILENAME, SOLUTIONS_DIRNAME, RESULTS_DIRNAME, NUMBER_OF_WINNERS, NUM_PROBLEMS, DEFAULT_SCORES, DEFAULT_CORRECTNESS, SOLUTIONS, SORT_ANSWERS
 
 
 def shell_exec(string_of_args):
@@ -123,7 +123,21 @@ def run():
     shell_exec('rm -rf github_dirs')
     shell_exec('mkdir github_dirs')
     build_submission_dir()
+    
     contest = Contest()
+
+    display('\nGetting answers...\n')
+
+    SOLUTIONS_PARSED = []
+    for i, solution in enumerate(SOLUTIONS):
+        with open(solution) as f:
+            question_answers = [word for line in f for word in line.split()]
+
+            if SORT_ANSWERS[i]:
+                question_answers.sort()
+
+            SOLUTIONS_PARSED.append(question_answers)
+
     display('\nScoring contest...\n')
     time.sleep(0.05)
     for contestant in os.listdir('./github_dirs'):
@@ -161,7 +175,11 @@ def run():
 
             with open('{}/{}/answers/{}'.format('./github_dirs', contestant, source)) as f:
                 question_answers = [word for line in f for word in line.split()]
-                new_contestant_obj.add_correct(problem_num, question_answers == SOLUTIONS[int(problem_num) - 1])
+
+                if SORT_ANSWERS[int(problem_num) - 1]:
+                    question_answers.sort()
+
+                new_contestant_obj.add_correct(problem_num, question_answers == SOLUTIONS_PARSED[int(problem_num) - 1])
 
 
     result_name = contest.dump_all_results()

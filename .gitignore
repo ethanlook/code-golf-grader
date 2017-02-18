@@ -2,3 +2,5 @@
 results/
 *.swp
 github_dirs/
+*.pyc
+*~
