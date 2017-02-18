@@ -8,12 +8,8 @@ from uuid import uuid4
 import random
 import re
 
-SUBMISSIONS_FILENAME = './submissions.txt'
-SOLUTIONS_DIRNAME = './solutions'
-RESULTS_DIRNAME = './results'
-NUMBER_OF_WINNERS = 3
-NUM_PROBLEMS = 6
-DEFAULT_SCORES = [1500, 1500, 1500, 1500, 1500, 1500]
+# Change config to similar file for other Code Golf Competitions
+from config import SUBMISSIONS_FILENAME, SOLUTIONS_DIRNAME, RESULTS_DIRNAME, NUMBER_OF_WINNERS, NUM_PROBLEMS, DEFAULT_SCORES, DEFAULT_CORRECTNESS, SOLUTIONS
 
 
 def shell_exec(string_of_args):
@@ -46,12 +42,19 @@ class Contestant():
     def __init__(self, name):
         self.name = name
         self.scores = DEFAULT_SCORES[:]
+        self.correctness = DEFAULT_CORRECTNESS[:]
 
-    def add_result(self, problem, score):
+    def add_filesize(self, problem, score):
         self.scores[int(problem) - 1] = score
 
+    def add_correct(self, problem, correct):
+        self.correctness[int(problem) - 1] = correct
+
     def get_total_score(self):
-        return sum(self.scores)
+        total = 0
+        for i, score in enumerate(self.scores):
+            total += score if self.correctness[i] else DEFAULT_SCORES[i]
+        return total
 
     def __eq__(self, other):
         return self.name == other.name and self.get_total_score() == other.get_total_sccore()
@@ -62,7 +65,7 @@ class Contestant():
     def __repr__(self):
         s = '\n---------{}--------\n'.format(self.name)
         for i, score in enumerate(self.scores):
-            s += '\tproblem {}: {}\n'.format(i+1, score)
+            s += '\tproblem {}: {}\n'.format(i+1, score if self.correctness[i] else DEFAULT_SCORES[i])
         s += '\ttotal: {}\n'.format(self.get_total_score())
         return s
 
@@ -108,6 +111,8 @@ def is_txt(fname):
 def is_file_of_interest(fname):
     return fname[0] != '.' and fname.split('.')[-1] != 'git' and fname.split('.')[-1] != 'txt'
 
+def is_answer_file_of_interest(fname):
+    return fname[0] != '.' and fname.split('.')[-1] != 'git'    
 
 def display(s):
     shell_exec('clear')
@@ -126,18 +131,37 @@ def run():
         time.sleep(1)
         new_contestant_obj = Contestant(contestant)
         contest.add_contestant(new_contestant_obj)
-        submission_dir = os.listdir('./github_dirs/{}'.format(contestant))
-        for submission in submission_dir:
-            if not is_file_of_interest(submission):
+        
+        solutions = os.listdir('./github_dirs/{}/solutions'.format(contestant))
+        for solution in solutions:
+            if not is_file_of_interest(solution):
                 continue
-            print 'Evaluating file: {}'.format(submission)
+            print 'Evaluating solution: {}'.format(solution)
             time.sleep(0.05)
-            problem_num = extract_problem_number(submission)
+            problem_num = extract_problem_number(solution)
 
-            source = submission
+            source = solution
 
-            fsize = file_size('{}/{}/{}'.format('./github_dirs', contestant, source))
-            new_contestant_obj.add_result(problem_num, fsize)
+            fsize = file_size('{}/{}/solutions/{}'.format('./github_dirs', contestant, source))
+            new_contestant_obj.add_filesize(problem_num, fsize)
+
+        answers = os.listdir('./github_dirs/{}/answers'.format(contestant))
+        for answer in answers:
+            if not is_answer_file_of_interest(answer):
+                continue
+            
+            problem_num = extract_problem_number(answer)
+            if not(problem_num):
+                continue
+
+            print 'Evaluating answer: {}'.format(answer)
+            time.sleep(0.05)
+
+            source = answer
+
+            with open('{}/{}/answers/{}'.format('./github_dirs', contestant, source)) as f:
+                question_answers = [word for line in f for word in line.split()]
+                new_contestant_obj.add_correct(problem_num, question_answers == SOLUTIONS[int(problem_num) - 1])
 
 
     result_name = contest.dump_all_results()

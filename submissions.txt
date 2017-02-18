@@ -1,5 +1,2 @@
-https://github.com/adamMgross/amg
-https://github.com/adamMgross/2amg
-https://github.com/adamMgross/3amg
-https://github.com/adamMgross/4amg
-https://github.com/adamMgross2/mock-code-golf
+https://github.com/ethanlook/code-golf-spring-2017
+https://github.com/adamMgross/code-golf-spring-2017
